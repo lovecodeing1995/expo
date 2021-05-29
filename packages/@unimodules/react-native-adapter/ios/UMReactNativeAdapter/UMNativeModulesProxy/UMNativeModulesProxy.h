@@ -1,7 +1,6 @@
 // Copyright 2018-present 650 Industries. All rights reserved.
 
 #import <React/RCTBridgeModule.h>
-#import <UMCore/UMInternalModule.h>
 #import <UMCore/UMModuleRegistry.h>
 
 // RCTBridgeModule capable of receiving method calls from JS and forwarding them
@@ -11,6 +10,6 @@
 @interface UMNativeModulesProxy : NSObject <RCTBridgeModule>
 
 - (instancetype)initWithModuleRegistry:(UMModuleRegistry *)moduleRegistry;
+- (instancetype)initWithModuleRegistry:(UMModuleRegistry *)moduleRegistry swiftModulesProviderClass:(nullable Class)swiftModulesProviderClass;
 
 @end
-

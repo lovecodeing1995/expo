@@ -14,8 +14,9 @@
 @property (nonatomic, readonly) UMModuleRegistryProvider *moduleRegistryProvider;
 
 - (instancetype)initWithModuleRegistryProvider:(UMModuleRegistryProvider *)moduleRegistryProvider;
+- (instancetype)initWithModuleRegistryProvider:(UMModuleRegistryProvider *)moduleRegistryProvider swiftModulesProviderClass:(nullable Class)swiftModulesProviderClass;
+
 - (NSArray<id<RCTBridgeModule>> *)extraModulesForModuleRegistry:(UMModuleRegistry *)moduleRegistry;
 - (NSArray<id<RCTBridgeModule>> *)extraModulesForBridge:(RCTBridge *)bridge;
 
 @end
-

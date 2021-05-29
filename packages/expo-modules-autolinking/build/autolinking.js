@@ -9,8 +9,9 @@ const fast_glob_1 = __importDefault(require("fast-glob"));
 const find_up_1 = __importDefault(require("find-up"));
 const fs_extra_1 = __importDefault(require("fs-extra"));
 const path_1 = __importDefault(require("path"));
-// TODO: Rename to `expo-module.json`
-const EXPO_MODULE_CONFIG_FILENAME = 'unimodule.json';
+const ExpoModuleConfig_1 = require("./ExpoModuleConfig");
+// In glob's brace expansion format.
+const EXPO_MODULE_CONFIG_FILENAMES = '{expo-module.config.json,unimodule.json}';
 /**
  * Resolves autolinking search paths. If none is provided, it accumulates all node_modules when
  * going up through the path components. This makes workspaces work out-of-the-box without any configs.
@@ -49,14 +50,14 @@ async function findModulesAsync(providedOptions) {
     const options = await mergeLinkingOptionsAsync(providedOptions);
     const results = {};
     for (const searchPath of options.searchPaths) {
-        const paths = await fast_glob_1.default([`*/${EXPO_MODULE_CONFIG_FILENAME}`, `@*/*/${EXPO_MODULE_CONFIG_FILENAME}`], {
+        const paths = await fast_glob_1.default([`*/${EXPO_MODULE_CONFIG_FILENAMES}`, `@*/*/${EXPO_MODULE_CONFIG_FILENAMES}`], {
             cwd: searchPath,
         });
         for (const packageConfigPath of paths) {
             const packagePath = await fs_extra_1.default.realpath(path_1.default.join(searchPath, path_1.default.dirname(packageConfigPath)));
-            const packageConfig = require(path_1.default.join(packagePath, EXPO_MODULE_CONFIG_FILENAME));
+            const expoModuleConfig = ExpoModuleConfig_1.requireAndResolveExpoModuleConfig(path_1.default.join(packagePath, path_1.default.basename(packageConfigPath)));
             const { name, version } = require(path_1.default.join(packagePath, 'package.json'));
-            if (options.exclude?.includes(name) || !packageConfig.platforms?.includes(options.platform)) {
+            if (options.exclude?.includes(name) || !expoModuleConfig.supportsPlatform(options.platform)) {
                 continue;
             }
             const currentRevision = {
@@ -65,8 +66,12 @@ async function findModulesAsync(providedOptions) {
             };
             if (!results[name]) {
                 // The revision that was found first will be the main one.
-                // An array of duplicates is needed only here.
-                results[name] = { ...currentRevision, duplicates: [] };
+                // An array of duplicates and the config are needed only here.
+                results[name] = {
+                    ...currentRevision,
+                    config: expoModuleConfig,
+                    duplicates: [],
+                };
             }
             else if (results[name].path !== packagePath &&
                 results[name].duplicates?.every(({ path }) => path !== packagePath)) {

@@ -3,10 +3,10 @@
 #import <UMReactNativeAdapter/UMNativeModulesProxy.h>
 #import <objc/runtime.h>
 #import <React/RCTLog.h>
-#import <UMCore/UMEventEmitter.h>
-#import <UMCore/UMViewManager.h>
 #import <UMReactNativeAdapter/UMViewManagerAdapter.h>
 #import <UMReactNativeAdapter/UMViewManagerAdapterClassesRegistry.h>
+
+@import UMCore;
 
 static const NSString *exportedMethodsNamesKeyPath = @"exportedMethods";
 static const NSString *viewManagersNamesKeyPath = @"viewManagersNames";
@@ -22,6 +22,7 @@ static const NSString *methodInfoArgumentsCountKey = @"argumentsCount";
 @property (nonatomic, strong) UMModuleRegistry *umModuleRegistry;
 @property (nonatomic, strong) NSMutableDictionary<const NSString *, NSMutableDictionary<NSString *, NSNumber *> *> *exportedMethodsKeys;
 @property (nonatomic, strong) NSMutableDictionary<const NSString *, NSMutableDictionary<NSNumber *, NSString *> *> *exportedMethodsReverseKeys;
+@property (nonatomic, strong) SwiftInteropBridge *swiftInteropBridge;
 
 @end
 
@@ -33,6 +34,16 @@ static const NSString *methodInfoArgumentsCountKey = @"argumentsCount";
     _umModuleRegistry = moduleRegistry;
     _exportedMethodsKeys = [NSMutableDictionary dictionary];
     _exportedMethodsReverseKeys = [NSMutableDictionary dictionary];
+  }
+  return self;
+}
+
+- (instancetype)initWithModuleRegistry:(UMModuleRegistry *)moduleRegistry swiftModulesProviderClass:(nullable Class)swiftModulesProviderClass
+{
+  if (self = [self initWithModuleRegistry:moduleRegistry]) {
+    if ([swiftModulesProviderClass conformsToProtocol:@protocol(ModulesProviderObjCProtocol)]) {
+      _swiftInteropBridge = [[SwiftInteropBridge alloc] initWithModulesProvider:[swiftModulesProviderClass new]];
+    }
   }
   return self;
 }
@@ -60,9 +71,10 @@ static const NSString *methodInfoArgumentsCountKey = @"argumentsCount";
       continue;
     }
   }
+  [exportedModulesConstants addEntriesFromDictionary:[_swiftInteropBridge exportedModulesConstants]];
 
   // Also add `exportedMethodsNames`
-  NSMutableDictionary<const NSString *, NSMutableArray<NSMutableDictionary<const NSString *, id> *> *> *exportedMethodsNamesAccumulator = [NSMutableDictionary dictionary];
+  NSMutableDictionary<NSString *, NSMutableArray<NSMutableDictionary<NSString *, id> *> *> *exportedMethodsNamesAccumulator = [NSMutableDictionary dictionary];
   for (UMExportedModule *exportedModule in [_umModuleRegistry getAllExportedModules]) {
     const NSString *exportedModuleName = [[exportedModule class] exportedModuleName];
     exportedMethodsNamesAccumulator[exportedModuleName] = [NSMutableArray array];
@@ -76,6 +88,9 @@ static const NSString *methodInfoArgumentsCountKey = @"argumentsCount";
     }];
     [self assignExportedMethodsKeys:exportedMethodsNamesAccumulator[exportedModuleName] forModuleName:exportedModuleName];
   }
+
+  // Add entries from Swift modules
+  [exportedMethodsNamesAccumulator addEntriesFromDictionary:[_swiftInteropBridge exportedMethodNames]];
 
   // Also, add `viewManagersNames` for sanity check and testing purposes -- with names we know what managers to mock on UIManager
   NSArray<UMViewManager *> *viewManagers = [_umModuleRegistry getAllViewManagers];
@@ -94,6 +109,10 @@ static const NSString *methodInfoArgumentsCountKey = @"argumentsCount";
 
 RCT_EXPORT_METHOD(callMethod:(NSString *)moduleName methodNameOrKey:(id)methodNameOrKey arguments:(NSArray *)arguments resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 {
+  if ([_swiftInteropBridge hasModule:moduleName]) {
+    [_swiftInteropBridge callMethod:methodNameOrKey onModule:moduleName withArgs:arguments resolve:resolve reject:reject];
+    return;
+  }
   UMExportedModule *module = [_umModuleRegistry getExportedModuleForName:moduleName];
   if (module == nil) {
     NSString *reason = [NSString stringWithFormat:@"No exported module was found for name '%@'. Are you sure all the packages are linked correctly?", moduleName];

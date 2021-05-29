@@ -10,6 +10,7 @@
 
 @property (nonatomic, strong) UMModuleRegistryProvider *moduleRegistryProvider;
 @property (nonatomic, strong) UMViewManagerAdapterClassesRegistry *viewManagersClassesRegistry;
+@property (nonatomic, strong, nullable) Class swiftModulesProviderClass;
 
 @end
 
@@ -24,6 +25,14 @@
   return self;
 }
 
+- (instancetype)initWithModuleRegistryProvider:(UMModuleRegistryProvider *)moduleRegistryProvider swiftModulesProviderClass:(nullable Class)swiftModulesProviderClass
+{
+  if (self = [self initWithModuleRegistryProvider:moduleRegistryProvider]) {
+    _swiftModulesProviderClass = swiftModulesProviderClass;
+  }
+  return self;
+}
+
 - (NSArray<id<RCTBridgeModule>> *)extraModulesForBridge:(RCTBridge *)bridge
 {
   return [self extraModulesForModuleRegistry:[_moduleRegistryProvider moduleRegistry]];
@@ -32,8 +41,8 @@
 - (NSArray<id<RCTBridgeModule>> *)extraModulesForModuleRegistry:(UMModuleRegistry *)moduleRegistry
 {
   NSMutableArray<id<RCTBridgeModule>> *extraModules = [NSMutableArray array];
-  
-  UMNativeModulesProxy *nativeModulesProxy = [[UMNativeModulesProxy alloc] initWithModuleRegistry:moduleRegistry];
+
+  UMNativeModulesProxy *nativeModulesProxy = [[UMNativeModulesProxy alloc] initWithModuleRegistry:moduleRegistry swiftModulesProviderClass:_swiftModulesProviderClass];
   
   [extraModules addObject:nativeModulesProxy];
   

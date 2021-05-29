@@ -7,6 +7,7 @@ install! 'cocoapods',
          :incremental_installation => true
 platform :ios, '11.0'
 inhibit_all_warnings!
+# use_experimental_swift_modules!
 
 abstract_target 'Expo Go' do
   # Expo Client dependencies

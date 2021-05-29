@@ -23,4 +23,7 @@ Pod::Spec.new do |s|
   else
     s.source_files = "#{s.name}/**/*.{h,m}"
   end
+
+  # This compiler flag is required to import UMCore as a framework, using `@import`.
+  s.compiler_flags = '-fcxx-modules'
 end
