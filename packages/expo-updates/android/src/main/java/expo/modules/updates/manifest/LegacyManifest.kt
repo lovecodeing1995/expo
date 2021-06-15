@@ -106,11 +106,11 @@ class LegacyManifest private constructor(
           Date()
         }
       }
-      var runtimeVersion = rawManifest.getRuntimeVersion()
-      // If manifest does not have a runtimeVersion, or the config does not have a runtimeVersion,
-      // fall back to sdkVersion
-      if (runtimeVersion == null || configuration.runtimeVersion == null) {
-        runtimeVersion = rawManifest.getSDKVersion()
+      var runtimeVersion = rawManifest.getSDKVersion()
+      // Use the manifest's runtimeVersion if it is not null AND the config's runtimeVersion is not null
+      val rawRuntimeVersion = rawManifest.getRuntimeVersion()
+      if (rawRuntimeVersion != null && configuration.runtimeVersion != null) {
+          runtimeVersion = rawRuntimeVersion
       }
 
       val bundleUrl = Uri.parse(rawManifest.getBundleURL())
