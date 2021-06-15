@@ -217,7 +217,7 @@
   XCTAssert([sdkVersion isEqual:update.runtimeVersion]);
 }
 
-- (void)testUpdateWithLegacyManifest_ssetsUpdateRuntimeAsRuntimeIfBothManifestRuntimeAndConfigRuntime
+- (void)testUpdateWithLegacyManifest_setsUpdateRuntimeAsRuntimeIfBothManifestRuntimeAndConfigRuntime
 {
   NSString *sdkVersion = @"39.0.0";
   NSString *runtimeVersion = @"hello";
