@@ -17,7 +17,7 @@ class LegacyRawManifest(json: JSONObject) : BaseLegacyRawManifest(json) {
 
   fun getRuntimeVersion(): String? = if (json.has("runtimeVersion")) {
     json.getString("runtimeVersion")
-  } else{
+  } else {
     null
   }
 
