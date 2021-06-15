@@ -106,15 +106,13 @@ class LegacyManifest private constructor(
           Date()
         }
       }
-      var runtimeVersion = rawManifest.getSDKVersion()
-      val runtimeVersionObject = rawManifest.getRuntimeVersion()
-      if (runtimeVersionObject != null) {
-        if (runtimeVersionObject is String) {
-          runtimeVersion = runtimeVersionObject
-        } else if (runtimeVersionObject is JSONObject) {
-          runtimeVersion = runtimeVersionObject.optString("android", runtimeVersion)
-        }
+      var runtimeVersion = rawManifest.getRuntimeVersion()
+      // If manifest does not have a runtimeVersion, or the config does not have a runtimeVersion,
+      // fall back to sdkVersion
+      if (runtimeVersion == null || configuration.runtimeVersion == null) {
+        runtimeVersion = rawManifest.getSDKVersion()
       }
+
       val bundleUrl = Uri.parse(rawManifest.getBundleURL())
       val bundledAssets = rawManifest.getBundledAssets()
       return LegacyManifest(
