@@ -48,7 +48,7 @@ static NSString * const EXUpdatesExpoTestDomain = @"expo.test";
   NSArray *assets = manifest.bundledAssets ?: @[];
   
   // Use the manifest's runtimeVersion if it is not null AND the config's runtimeVersion is not null
-  if (manifest.runtimeVersion && config.runtimeVersion) {
+  if (manifest.runtimeVersion != nil && config.runtimeVersion != nil) {
     update.runtimeVersion = manifest.runtimeVersion;
   } else {
     NSAssert(manifest.sdkVersion != nil, @"sdkVersion should not be null");
