@@ -240,6 +240,4 @@
   XCTAssert([runtimeVersion isEqual:update.runtimeVersion]);
 }
 
-
-
 @end
